@@ -4,6 +4,7 @@
  */
 import express from 'express';
 
+import { adminRouter } from './routes/admin.js';
 import { ordersRouter } from './routes/orders.js';
 import { productsRouter } from './routes/products.js';
 import { webhookRouter } from './routes/webhook.js';
@@ -39,6 +40,7 @@ export function createApp({ db, config, log = console.log, worker: workerOpts = 
   app.use(productsRouter);
   app.use(ordersRouter(services));
   app.use(webhookRouter({ payments, onAccepted: () => worker?.kick() }));
+  app.use(adminRouter({ db, config, orders, delivery, worker }));
 
   // Витрина, страница заказа и админка отдаются как статика из frontend/.
   app.use(express.static(config.frontendDir, { extensions: ['html'] }));

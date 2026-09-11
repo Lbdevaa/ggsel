@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Админка — GGSel</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <main class="container admin">
+    <header class="admin-header">
+      <h1>Админка</h1>
+      <label class="token">
+        Токен
+        <input id="token" type="password" placeholder="ADMIN_TOKEN" autocomplete="off">
+      </label>
+      <a href="index.html">На витрину</a>
+    </header>
+
+    <section class="panel">
+      <h2>Поставщики</h2>
+      <div id="suppliers" class="suppliers"></div>
+    </section>
+
+    <section class="panel">
+      <div class="orders-toolbar">
+        <h2>Заказы</h2>
+        <label><input type="radio" name="filter" value="recoverable" checked> Оплачен, но не выдан</label>
+        <label><input type="radio" name="filter" value="all"> Все</label>
+        <button type="button" id="refresh" class="secondary">Обновить</button>
+        <span id="message" class="muted"></span>
+      </div>
+      <div class="table-wrap">
+        <table class="orders">
+          <thead>
+            <tr>
+              <th>Заказ</th><th>Товар</th><th>Сумма</th><th>Статус</th><th>Поставщик</th><th>Попыток</th><th>Ошибка</th><th>Ключ</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="orders"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="js/admin.js"></script>
+</body>
+</html>

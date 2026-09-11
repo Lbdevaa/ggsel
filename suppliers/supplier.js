@@ -11,8 +11,9 @@
  *                                              -> 500 { status:'error', reason:'supplier_error' }
  *                                              -> зависание на hang_ms (эмуляция таймаута)
  *   POST /restock { keys: [...] } | { count: N }  пополнить пул
- *   POST /chaos   { fail_rate, timeout_rate, hang_ms }  поменять долю сбоев на лету (для гонок)
- *   GET  /stats   { name, total, issued, available, fail_rate, timeout_rate, hang_ms }
+ *   POST /chaos   { fail_rate, timeout_rate, hang_ms, out_of_stock }  сбои на лету (для гонок);
+ *                 out_of_stock=true эмулирует «остаток закончился» без опустошения пула
+ *   GET  /stats   { name, total, issued, available, fail_rate, timeout_rate, hang_ms, out_of_stock }
  *   GET  /health
  *
  * Ключевое требование контракта: повтор с тем же request_id возвращает тот же код.
@@ -29,7 +30,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * @param {{ name: string, dbPath?: string, keys?: string[], keysFile?: string,
- *           failRate?: number, timeoutRate?: number, hangMs?: number, log?: Function }} options
+ *           failRate?: number, timeoutRate?: number, hangMs?: number, outOfStock?: boolean, log?: Function }} options
  */
 export function createSupplier(options) {
   const name = options.name.toUpperCase();
@@ -37,6 +38,7 @@ export function createSupplier(options) {
     failRate: options.failRate ?? 0,
     timeoutRate: options.timeoutRate ?? 0,
     hangMs: options.hangMs ?? 10000,
+    outOfStock: options.outOfStock ?? false,
   };
   const log = options.log ?? ((...args) => console.log(`[supplier-${name}]`, ...args));
 
@@ -126,6 +128,7 @@ export function createSupplier(options) {
       fail_rate: state.failRate,
       timeout_rate: state.timeoutRate,
       hang_ms: state.hangMs,
+      out_of_stock: state.outOfStock,
     };
   }
 
@@ -165,7 +168,8 @@ export function createSupplier(options) {
       if (body.fail_rate !== undefined) state.failRate = Number(body.fail_rate);
       if (body.timeout_rate !== undefined) state.timeoutRate = Number(body.timeout_rate);
       if (body.hang_ms !== undefined) state.hangMs = Number(body.hang_ms);
-      log('chaos updated', { fail_rate: state.failRate, timeout_rate: state.timeoutRate, hang_ms: state.hangMs });
+      if (body.out_of_stock !== undefined) state.outOfStock = Boolean(body.out_of_stock);
+      log('chaos updated', { fail_rate: state.failRate, timeout_rate: state.timeoutRate, hang_ms: state.hangMs, out_of_stock: state.outOfStock });
       return send(res, 200, stats());
     }
 
@@ -195,7 +199,7 @@ export function createSupplier(options) {
         return send(res, 500, { status: 'error', reason: 'supplier_error' });
       }
 
-      const result = issue(body);
+      const result = state.outOfStock ? null : issue(body);
       if (!result) {
         log(`issue ${body.request_id} -> out_of_stock`);
         return send(res, 409, { status: 'error', reason: 'out_of_stock' });

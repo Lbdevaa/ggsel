@@ -1,6 +1,6 @@
 /**
  * Поднимает полный стек в процессе теста: API на случайном порту с БД в памяти
- * и заглушку поставщика A из suppliers/supplier.js на случайном порту.
+ * и заглушки поставщиков A и B из suppliers/supplier.js на случайных портах.
  */
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
@@ -16,12 +16,15 @@ const supplierModule = path.resolve(here, '../../../suppliers/supplier.js');
 const JSON_HEADERS = { 'content-type': 'application/json' };
 
 /**
- * @param {{ keys?: string[], supplier?: object, timeoutMs?: number, maxRetries?: number, supplierUrl?: string }} [opts]
+ * @param {{ keys?: string[], keysB?: string[], supplier?: object, supplierB?: object,
+ *           timeoutMs?: number, maxRetries?: number, supplierUrl?: string, supplierUrlB?: string }} [opts]
  */
 export async function startStack(opts = {}) {
   const { createSupplier } = await import(pathToFileURL(supplierModule).href);
-  const supplier = createSupplier({ name: 'A', keys: opts.keys ?? defaultKeys(20), log: () => {}, ...opts.supplier });
+  const supplier = createSupplier({ name: 'A', keys: opts.keys ?? defaultKeys(20, 'A'), log: () => {}, ...opts.supplier });
   const supplierPort = await supplier.listen(0);
+  const supplierB = createSupplier({ name: 'B', keys: opts.keysB ?? defaultKeys(5, 'B'), log: () => {}, ...opts.supplierB });
+  const supplierBPort = await supplierB.listen(0);
 
   const db = openDb(':memory:');
   const config = {
@@ -29,6 +32,7 @@ export async function startStack(opts = {}) {
     suppliers: {
       ...baseConfig.suppliers,
       a: opts.supplierUrl ?? `http://localhost:${supplierPort}`,
+      b: opts.supplierUrlB ?? `http://localhost:${supplierBPort}`,
       timeoutMs: opts.timeoutMs ?? 1000,
       maxRetries: opts.maxRetries ?? 3,
     },
@@ -55,7 +59,21 @@ export async function startStack(opts = {}) {
   return {
     api,
     supplier,
+    supplierB,
     supplierUrl: `http://localhost:${supplierPort}`,
+    supplierUrlB: `http://localhost:${supplierBPort}`,
+    adminHeaders: { ...JSON_HEADERS, 'x-admin-token': config.adminToken },
+    admin: {
+      get: (p) => fetch(`${api}/api/admin${p}`, { headers: { 'x-admin-token': config.adminToken } }).then((r) => r.json()),
+      post: async (p, body) => {
+        const res = await fetch(`${api}/api/admin${p}`, {
+          method: 'POST',
+          headers: { ...JSON_HEADERS, 'x-admin-token': config.adminToken },
+          body: JSON.stringify(body ?? {}),
+        });
+        return { status: res.status, body: await res.json().catch(() => ({})) };
+      },
+    },
     services,
     db,
     post,
@@ -80,11 +98,12 @@ export async function startStack(opts = {}) {
       worker?.stop();
       await new Promise((resolve) => server.close(resolve));
       await supplier.close();
+      await supplierB.close();
       db.close();
     },
   };
 }
 
-function defaultKeys(count) {
-  return Array.from({ length: count }, (_, i) => `TEST-KEY-${String(i + 1).padStart(4, '0')}`);
+function defaultKeys(count, prefix = 'A') {
+  return Array.from({ length: count }, (_, i) => `TEST-${prefix}-${String(i + 1).padStart(4, '0')}`);
 }

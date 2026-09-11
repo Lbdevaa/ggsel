@@ -41,7 +41,7 @@ describe('order flow', () => {
 
     const { order, history } = await stack.waitFor(id, (o) => o.status === 'delivered');
     assert.equal(order.status, 'delivered');
-    assert.match(order.key_code, /^TEST-KEY-\d{4}$/);
+    assert.match(order.key_code, /^TEST-A-\d{4}$/);
     assert.equal(order.supplier, 'A');
     assert.deepEqual(history.map((e) => e.to_status), ['created', 'paid', 'delivering', 'delivered']);
     assert.equal(stack.supplier.stats().issued - issuedBefore, 1);

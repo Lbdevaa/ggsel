@@ -45,6 +45,18 @@ export function ordersRepo(db) {
     listByStatuses: (statuses) => statuses.flatMap((s) => stmt.listByStatus.all(s)),
     events: (id) => stmt.events.all(id),
 
+    /** Обновление полей без смены статуса (например, привязка к поставщику). */
+    update(id, patch) {
+      const sets = ['updated_at = ?'];
+      const params = [nowIso()];
+      for (const [key, value] of Object.entries(patch)) {
+        if (!PATCHABLE.has(key)) throw new Error(`field "${key}" is not patchable`);
+        sets.push(`${key} = ?`);
+        params.push(value);
+      }
+      return db.prepare(`UPDATE orders SET ${sets.join(', ')} WHERE id = ?`).run(...params, id).changes === 1;
+    },
+
     /**
      * Атомарный compare-and-set перехода статуса. Возвращает true только тому вызову,
      * который реально изменил строку: под гонкой это ровно один из конкурентов.

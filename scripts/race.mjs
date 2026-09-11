@@ -3,17 +3,22 @@
  *
  * Запуск: npm run dev, затем в другом терминале npm run race.
  * Переменные: API_URL (по умолчанию http://localhost:3300), SUPPLIER_A_URL (http://localhost:4001),
+ * SUPPLIER_B_URL (http://localhost:4002), ADMIN_TOKEN (admin-dev-token),
  * RACE_REPEAT (сколько раз прогнать весь набор, по умолчанию 1).
  *
  * Каждый сценарий создаёт свои заказы, поэтому набор можно гонять многократно без сброса БД.
- * Инвариант в конце: у поставщика списано ровно столько ключей, сколько заказов дошло до delivered.
+ * Сценарии R6–R7 включают режимы сбоев у заглушек поставщиков через /chaos и снимают их после себя.
+ * Инвариант в конце: у поставщиков A+B списано ровно столько ключей, сколько заказов дошло до delivered.
  */
 import { randomUUID } from 'node:crypto';
 
 const API = process.env.API_URL ?? 'http://localhost:3300';
 const SUPPLIER_A = process.env.SUPPLIER_A_URL ?? 'http://localhost:4001';
+const SUPPLIER_B = process.env.SUPPLIER_B_URL ?? 'http://localhost:4002';
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN ?? 'admin-dev-token';
 const REPEAT = Number(process.env.RACE_REPEAT ?? 1);
 const JSON_HEADERS = { 'content-type': 'application/json' };
+const ADMIN_HEADERS = { ...JSON_HEADERS, 'x-admin-token': ADMIN_TOKEN };
 
 // ---------- helpers ----------
 
@@ -30,8 +35,15 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const createOrder = (orderId, sku = 'KEY-GTA5') => post(`${API}/api/orders`, { order_id: orderId, sku });
 const webhook = (orderId, status, eventId = newEventId(), amount) =>
   post(`${API}/webhook/payment`, { event_id: eventId, order_id: orderId, status, amount, currency: 'RUB' });
-const supplierIssued = async () => (await get(`${SUPPLIER_A}/stats`)).issued;
+const issuedAt = async (url) => (await get(`${url}/stats`)).issued;
+const supplierIssued = () => issuedAt(SUPPLIER_A);
+const supplierIssuedTotal = async () => (await issuedAt(SUPPLIER_A)) + (await issuedAt(SUPPLIER_B));
+const chaos = (url, body) => post(`${url}/chaos`, body);
 const orderInfo = (orderId) => get(`${API}/api/orders/${orderId}`);
+const reissue = async (orderId) => {
+  const res = await fetch(`${API}/api/admin/orders/${orderId}/reissue`, { method: 'POST', headers: ADMIN_HEADERS });
+  return { status: res.status, body: await res.json().catch(() => ({})) };
+};
 
 async function waitFor(orderId, predicate, timeoutMs = 8000) {
   const deadline = Date.now() + timeoutMs;
@@ -54,11 +66,12 @@ const countResults = (responses) =>
 const countTransitionsTo = (history, status) => history.filter((e) => e.to_status === status).length;
 
 /** Собирает проверки сценария и решает, прошёл ли он. */
-function check(name, expectations) {
+function check(name, expectations, { delivered = 1 } = {}) {
   const failed = expectations.filter((e) => !e.ok);
   return {
     name,
     ok: failed.length === 0,
+    delivered, // сколько заказов сценарий довёл до delivered (для итогового инварианта)
     details: expectations.map((e) => `${e.ok ? 'ok ' : 'FAIL'} ${e.label}: expected ${e.expected}, got ${e.actual}`),
   };
 }
@@ -159,7 +172,7 @@ async function r5_doubleClickCreate() {
     expect('200 responses', statuses.http_200 ?? 0, 29),
     expect('created:true count', createdFlags, 1),
     expect('distinct order ids', ids.size, 1),
-  ]);
+  ], { delivered: 0 });
 }
 
 async function r5b_doubleClickThenParallelPay() {
@@ -180,20 +193,148 @@ async function r5b_doubleClickThenParallelPay() {
   ]);
 }
 
+async function r6_outOfStockThenRestockAndParallelReissue() {
+  // Оба поставщика отвечают «нет остатка», оплата уже прошла.
+  await chaos(SUPPLIER_A, { out_of_stock: true });
+  await chaos(SUPPLIER_B, { out_of_stock: true });
+  const orderId = newOrderId();
+  try {
+    await createOrder(orderId, 'KEY-GTA5');
+    await webhook(orderId, 'paid', newEventId(), 1990);
+    const stuck = await waitFor(orderId, (o) => o.status === 'out_of_stock');
+    const issuedBefore = await supplierIssuedTotal();
+
+    // «Пополнение», затем 10 параллельных нажатий «Повторить выдачу».
+    await chaos(SUPPLIER_A, { out_of_stock: false });
+    await chaos(SUPPLIER_B, { out_of_stock: false });
+    const responses = await Promise.all(Array.from({ length: 10 }, () => reissue(orderId)));
+    const queued = responses.filter((r) => r.body.result === 'queued').length;
+    const { order, history } = await waitFor(orderId, (o) => o.status === 'delivered');
+    const again = await reissue(orderId);
+
+    return check('R6 пустой пул → пополнение → 10 параллельных reissue', [
+      expect('stuck status', stuck.order.status, 'out_of_stock'),
+      expect('stuck has no key', stuck.order.key_code, null),
+      expect('reissue queued once', queued, 1),
+      expect('status', order.status, 'delivered'),
+      expect('transitions to delivered', countTransitionsTo(history, 'delivered'), 1),
+      expect('supplier issued delta', (await supplierIssuedTotal()) - issuedBefore, 1),
+      expect('reissue after delivered', again.status, 409),
+    ]);
+  } finally {
+    await chaos(SUPPLIER_A, { out_of_stock: false });
+    await chaos(SUPPLIER_B, { out_of_stock: false });
+  }
+}
+
+async function r7_supplierTimeoutSameCode() {
+  // A выдаёт ключ, но ответ зависает дольше таймаута клиента. Повтор идёт с тем же request_id.
+  const issuedBefore = await supplierIssued();
+  await chaos(SUPPLIER_A, { timeout_rate: 1, hang_ms: 20000 });
+  const orderId = newOrderId();
+  try {
+    await createOrder(orderId, 'GIFT-XBOX-1500');
+    await webhook(orderId, 'paid', newEventId(), 1500);
+    const { order } = await waitFor(orderId, (o) => o.status === 'delivered', 15000);
+    return check('R7 таймаут поставщика A, повтор с тем же request_id', [
+      expect('status', order.status, 'delivered'),
+      expect('supplier', order.supplier, 'A'),
+      expect('attempts (1 таймаут + 1 повтор)', order.attempts, 2),
+      expect('supplier A issued delta', (await supplierIssued()) - issuedBefore, 1),
+    ]);
+  } finally {
+    await chaos(SUPPLIER_A, { timeout_rate: 0 });
+  }
+}
+
+async function r7b_fallbackToB() {
+  // A явно отказывает (5xx): код не выдан, идём к B.
+  const issuedABefore = await issuedAt(SUPPLIER_A);
+  const issuedBBefore = await issuedAt(SUPPLIER_B);
+  await chaos(SUPPLIER_A, { fail_rate: 1 });
+  const orderId = newOrderId();
+  try {
+    await createOrder(orderId, 'SUB-DISCORD-1M');
+    await webhook(orderId, 'paid', newEventId(), 399);
+    const { order } = await waitFor(orderId, (o) => o.status === 'delivered');
+    return check('R7b явный отказ A → выдача через B', [
+      expect('status', order.status, 'delivered'),
+      expect('supplier', order.supplier, 'B'),
+      expect('supplier A issued delta', (await issuedAt(SUPPLIER_A)) - issuedABefore, 0),
+      expect('supplier B issued delta', (await issuedAt(SUPPLIER_B)) - issuedBBefore, 1),
+    ]);
+  } finally {
+    await chaos(SUPPLIER_A, { fail_rate: 0 });
+  }
+}
+
+async function rs_chaosStress() {
+  // Оба поставщика нестабильны: A даёт 5xx в половине случаев и зависает в трети,
+  // B падает в трети. 30 заказов оплачиваются одновременно. После затишья все
+  // восстановимые заказы добиваются повторной выдачей. Ни одного задвоения быть не должно.
+  const COUNT = 30;
+  const issuedBefore = await supplierIssuedTotal();
+  await chaos(SUPPLIER_A, { fail_rate: 0.5, timeout_rate: 0.3, hang_ms: 20000 });
+  await chaos(SUPPLIER_B, { fail_rate: 0.3 });
+  const ids = Array.from({ length: COUNT }, newOrderId);
+  const settled = (o) => ['delivered', 'out_of_stock', 'delivery_failed'].includes(o.status);
+  try {
+    await Promise.all(ids.map((id) => createOrder(id, 'KEY-EFT')));
+    await Promise.all(ids.map((id) => webhook(id, 'paid', newEventId(), 3490)));
+    const firstPass = await Promise.all(ids.map((id) => waitFor(id, settled, 30000)));
+    const deliveredFirst = firstPass.filter((i) => i.order.status === 'delivered').length;
+    const recoverable = firstPass.filter((i) => i.order.status !== 'delivered').map((i) => i.order.id);
+
+    // Хаос снят, восстановимые заказы добиваем.
+    await chaos(SUPPLIER_A, { fail_rate: 0, timeout_rate: 0 });
+    await chaos(SUPPLIER_B, { fail_rate: 0 });
+    await Promise.all(recoverable.map((id) => reissue(id)));
+    const finalPass = await Promise.all(ids.map((id) => waitFor(id, (o) => o.status === 'delivered', 30000)));
+    const deliveredFinal = finalPass.filter((i) => i.order.status === 'delivered').length;
+    const keys = finalPass.map((i) => i.order.key_code).filter(Boolean);
+    const doubleDelivered = finalPass.filter((i) => countTransitionsTo(i.history, 'delivered') > 1).length;
+
+    return check(`RS хаос-стресс: ${COUNT} заказов при A(5xx 0.5, таймаут 0.3) и B(5xx 0.3), затем reissue`, [
+      expect('all settled after first pass', firstPass.filter((i) => settled(i.order)).length, COUNT),
+      expect('delivered after reissue', deliveredFinal, COUNT),
+      expect('distinct keys', new Set(keys).size, COUNT),
+      expect('orders delivered twice', doubleDelivered, 0),
+      expect('supplier issued delta', (await supplierIssuedTotal()) - issuedBefore, COUNT),
+      expect('recovered via reissue (info)', recoverable.length, recoverable.length),
+      expect('delivered on first pass (info)', deliveredFirst, deliveredFirst),
+    ], { delivered: COUNT });
+  } finally {
+    await chaos(SUPPLIER_A, { fail_rate: 0, timeout_rate: 0 });
+    await chaos(SUPPLIER_B, { fail_rate: 0 });
+  }
+}
+
 // ---------- runner ----------
 
-const SCENARIOS = [r1_parallelPaidWebhooks, r2_duplicateEventId, r3_webhookBeforeOrder, r4_mixedPaidAndFailed, r5_doubleClickCreate, r5b_doubleClickThenParallelPay];
+const SCENARIOS = [
+  r1_parallelPaidWebhooks,
+  r2_duplicateEventId,
+  r3_webhookBeforeOrder,
+  r4_mixedPaidAndFailed,
+  r5_doubleClickCreate,
+  r5b_doubleClickThenParallelPay,
+  r6_outOfStockThenRestockAndParallelReissue,
+  r7_supplierTimeoutSameCode,
+  r7b_fallbackToB,
+  rs_chaosStress,
+];
 
 async function main() {
   try {
     await get(`${API}/health`);
     await get(`${SUPPLIER_A}/health`);
+    await get(`${SUPPLIER_B}/health`);
   } catch {
-    console.error(`Стенд недоступен: ${API} / ${SUPPLIER_A}. Запустите npm run dev.`);
+    console.error(`Стенд недоступен: ${API} / ${SUPPLIER_A} / ${SUPPLIER_B}. Запустите npm run dev.`);
     process.exit(2);
   }
 
-  const issuedAtStart = await supplierIssued();
+  const issuedAtStart = await supplierIssuedTotal();
   let deliveredOrders = 0;
   let failures = 0;
 
@@ -206,14 +347,13 @@ async function main() {
       console.log(`${result.ok ? 'PASS' : 'FAIL'}  ${result.name}  (${ms} ms)`);
       for (const line of result.details) console.log(`      ${line}`);
       if (!result.ok) failures += 1;
-      // Сценарии R1–R4 и R5b заканчиваются одним delivered заказом; R5 без оплаты.
-      if (scenario !== r5_doubleClickCreate) deliveredOrders += 1;
+      deliveredOrders += result.delivered;
     }
   }
 
-  const issuedDelta = (await supplierIssued()) - issuedAtStart;
+  const issuedDelta = (await supplierIssuedTotal()) - issuedAtStart;
   const invariantOk = issuedDelta === deliveredOrders;
-  console.log(`\nИнвариант: ключей списано у поставщика ${issuedDelta}, заказов доведено до delivered ${deliveredOrders} -> ${invariantOk ? 'OK' : 'FAIL'}`);
+  console.log(`\nИнвариант: ключей списано у поставщиков A+B ${issuedDelta}, заказов доведено до delivered ${deliveredOrders} -> ${invariantOk ? 'OK' : 'FAIL'}`);
   if (!invariantOk) failures += 1;
 
   console.log(failures ? `\nПровалено проверок: ${failures}` : '\nВсе сценарии прошли.');

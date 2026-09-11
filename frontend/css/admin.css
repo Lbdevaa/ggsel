@@ -1,0 +1,154 @@
+/* Админка: рабочий вид без дизайна. */
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+
+.admin-header h1 {
+  margin: 0;
+  flex: 1;
+}
+
+.token {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.token input {
+  font: inherit;
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+}
+
+.panel h2 {
+  margin: 0 0 12px;
+  font-size: 1.1rem;
+}
+
+.suppliers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.supplier {
+  padding: 12px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.supplier-title {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.supplier-stats {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 10px;
+  color: var(--muted);
+}
+
+.supplier-stats b {
+  color: var(--text);
+}
+
+.supplier-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.supplier-actions label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.9rem;
+}
+
+.supplier-actions input[type="number"] {
+  width: 64px;
+  font: inherit;
+  padding: 4px 6px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+}
+
+.orders-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.orders-toolbar h2 {
+  margin: 0;
+  flex: 1;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table.orders {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+table.orders th,
+table.orders td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: top;
+}
+
+table.orders th {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+table.orders .error {
+  max-width: 260px;
+  color: #b45309;
+  word-break: break-word;
+}
+
+button.small {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  background: #f3f4f6;
+}
+
+.badge[data-status="delivered"] {
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.badge[data-status="out_of_stock"],
+.badge[data-status="delivery_failed"] {
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.badge[data-status="payment_failed"] {
+  background: #fef2f2;
+  color: #991b1b;
+}
