@@ -1,0 +1,72 @@
+# Локальный стенд: docker compose up --build
+# API на http://localhost:3300, поставщики на 4001 и 4002.
+
+x-app: &app
+  build: .
+  env_file:
+    - path: .env
+      required: false
+
+services:
+  api:
+    <<: *app
+    container_name: ggsel-api
+    command: ["node", "backend/src/server.js"]
+    environment:
+      PORT: 3300
+      DB_PATH: /data/app.sqlite
+      SUPPLIER_A_URL: http://supplier-a:4001
+      SUPPLIER_B_URL: http://supplier-b:4002
+    ports:
+      - "3300:3300"
+    volumes:
+      - api-data:/data
+    depends_on:
+      supplier-a:
+        condition: service_healthy
+      supplier-b:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3300/health"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  supplier-a:
+    <<: *app
+    container_name: ggsel-supplier-a
+    command: ["node", "suppliers/supplier.js", "A"]
+    environment:
+      SUPPLIER_A_PORT: 4001
+      SUPPLIER_A_DB_PATH: /data/supplier-a.sqlite
+    ports:
+      - "4001:4001"
+    volumes:
+      - supplier-a-data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4001/health"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  supplier-b:
+    <<: *app
+    container_name: ggsel-supplier-b
+    command: ["node", "suppliers/supplier.js", "B"]
+    environment:
+      SUPPLIER_B_PORT: 4002
+      SUPPLIER_B_DB_PATH: /data/supplier-b.sqlite
+    ports:
+      - "4002:4002"
+    volumes:
+      - supplier-b-data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4002/health"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+volumes:
+  api-data:
+  supplier-a-data:
+  supplier-b-data:

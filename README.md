@@ -6,16 +6,39 @@ MVP витрины и продажи цифровых товаров: витри
 
 ## Запуск
 
-_Заполняется на этапе 0._
+Нужен Node.js 22.13+ (используется встроенный `node:sqlite`, нативных зависимостей нет).
+
+```
+npm install
+npm run dev
+```
+
+Поднимаются три процесса: API на http://localhost:3300 (оттуда же отдаётся фронт), поставщик A на 4001, поставщик B на 4002. Переменные окружения необязательны, их список с дефолтами в [.env.example](.env.example).
+
+Через Docker:
+
+```
+docker compose up --build
+```
+
+Сбросить базы (при остановленных процессах): `npm run reset`.
+
+Проверка руками:
+
+```
+curl localhost:3300/api/products
+curl -X POST localhost:4001/issue -H 'content-type: application/json' -d '{"request_id":"req_1","sku":"KEY-GTA5","order_id":"ord_1"}'
+curl localhost:4001/stats
+```
 
 ## Структура
 
 ```
 frontend/   витрина, страница заказа, админка (HTML / CSS / JS без фреймворков)
-backend/    REST API, БД, воркер выдачи (Node.js)
-suppliers/  две заглушки поставщиков по контракту из ТЗ
-scripts/    race.mjs — воспроизведение состязательных сценариев
-docs/       ТЗ, решения, сценарии гонок
+backend/    REST API, SQLite, воркер выдачи (Node.js + Express)
+suppliers/  две заглушки поставщиков по контракту: /issue, /restock, /chaos, /stats
+scripts/    dev.mjs (три процесса), reset-db.mjs, race.mjs (сценарии гонок, этап 2)
+docs/       бриф, решения, сценарии гонок
 ```
 
 ## Как воспроизвести проверку гонок

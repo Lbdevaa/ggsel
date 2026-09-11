@@ -1,0 +1,23 @@
+{
+  "name": "ggsel-mvp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "GGSel MVP: витрина цифровых товаров с однократной выдачей ключей",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "workspaces": [
+    "backend",
+    "suppliers"
+  ],
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env scripts/dev.mjs",
+    "start:api": "node --env-file-if-exists=.env backend/src/server.js",
+    "start:supplier-a": "node --env-file-if-exists=.env suppliers/supplier.js A",
+    "start:supplier-b": "node --env-file-if-exists=.env suppliers/supplier.js B",
+    "reset": "node scripts/reset-db.mjs",
+    "race": "node --env-file-if-exists=.env scripts/race.mjs",
+    "test": "npm test --workspaces --if-present"
+  }
+}

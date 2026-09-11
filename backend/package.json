@@ -1,0 +1,14 @@
+{
+  "name": "@ggsel/backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test test/"
+  },
+  "dependencies": {
+    "express": "5.2.1"
+  }
+}

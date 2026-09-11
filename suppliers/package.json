@@ -1,0 +1,10 @@
+{
+  "name": "@ggsel/suppliers",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "supplier.js",
+  "scripts": {
+    "start": "node supplier.js"
+  }
+}

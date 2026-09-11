@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GGSel</title>
+  <link rel="stylesheet" href="css/base.css">
+</head>
+<body>
+  <main class="container">
+    <h1>GGSel MVP</h1>
+    <p>Каркас витрины. Верстка по макету появится на этапе 1.</p>
+    <ul id="products"></ul>
+  </main>
+  <script type="module">
+    import { api } from './js/api.js';
+    const list = document.getElementById('products');
+    const { products } = await api.get('/api/products');
+    for (const p of products) {
+      const li = document.createElement('li');
+      li.textContent = `${p.name} — ${p.price} ₽ (${p.sku})`;
+      list.append(li);
+    }
+  </script>
+</body>
+</html>
