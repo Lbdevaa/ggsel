@@ -2,21 +2,52 @@ import { Router } from 'express';
 
 import { OrderError } from '../services/orders.js';
 import { WebhookError } from '../services/payments.js';
+import { PromoError } from '../services/promo.js';
+import { findProduct } from '../repositories/products.js';
 
 /**
- * @param {{ orders: object, payments: object }} services
+ * @param {{ orders: object, payments: object, promo: object }} services
  */
-export function ordersRouter({ orders, payments }) {
+export function ordersRouter({ orders, payments, promo }) {
   const router = Router();
 
+  const sendKnownError = (res, err) => {
+    if (err instanceof OrderError || err instanceof PromoError) {
+      res.status(err.status).json({ error: err.code, message: err.message });
+      return true;
+    }
+    return false;
+  };
+
   // Создание заказа. order_id генерирует клиент, повтор возвращает тот же заказ (200 вместо 201).
+  // Необязательный promo_code занимает использование в той же транзакции.
   router.post('/api/orders', (req, res) => {
     try {
       const { order, created } = orders.create(req.body ?? {});
       res.status(created ? 201 : 200).json({ order: orders.serialize(order), created });
     } catch (err) {
-      if (err instanceof OrderError) return res.status(err.status).json({ error: err.code, message: err.message });
-      throw err;
+      if (!sendKnownError(res, err)) throw err;
+    }
+  });
+
+  // Расчёт скидки без списания: { sku, code } -> { discount, amount, remaining }.
+  router.post('/api/promo/preview', (req, res) => {
+    const product = findProduct(String(req.body?.sku ?? ''));
+    if (!product) return res.status(400).json({ error: 'unknown_sku' });
+    try {
+      res.json({ quote: promo.quote(req.body?.code, product.price) });
+    } catch (err) {
+      if (!sendKnownError(res, err)) throw err;
+    }
+  });
+
+  // Применить промокод к созданному, ещё не оплаченному заказу.
+  router.post('/api/orders/:id/promo', (req, res) => {
+    try {
+      const order = promo.applyToOrder(req.params.id, req.body?.code);
+      res.json({ order: orders.serialize(order) });
+    } catch (err) {
+      if (!sendKnownError(res, err)) throw err;
     }
   });
 

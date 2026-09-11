@@ -15,9 +15,9 @@ export class OrderError extends Error {
 }
 
 /**
- * @param {{ db: import('node:sqlite').DatabaseSync, hooks?: { onOrderCreated?: (order: object) => void } }} deps
+ * @param {{ db: import('node:sqlite').DatabaseSync, promo: object, hooks?: { onOrderCreated?: (order: object) => void } }} deps
  */
-export function ordersService({ db, hooks = {} }) {
+export function ordersService({ db, promo, hooks = {} }) {
   const orders = ordersRepo(db);
 
   return {
@@ -37,19 +37,29 @@ export function ordersService({ db, hooks = {} }) {
       if (!product) throw new OrderError(400, 'unknown_sku');
 
       return inTransaction(db, () => {
-        const created = orders.insert({
+        // Повтор с тем же order_id: возвращаем как есть, промокод второй раз не трогаем.
+        const existing = orders.byId(orderId);
+        if (existing) return { order: existing, created: false };
+
+        // Скидку считает сервер; клиентские суммы игнорируются. Использование занимается
+        // в той же транзакции, что и вставка заказа, поэтому «занято, но заказа нет» невозможно.
+        const pricing = input?.promo_code
+          ? promo.reserveForOrder(input.promo_code, orderId, product.price)
+          : { code: null, discount: 0, amount: product.price };
+
+        orders.insert({
           id: orderId,
           sku: product.sku,
           base_amount: product.price,
-          discount: 0,
-          amount: product.price,
-          promo_code: null,
+          discount: pricing.discount,
+          amount: pricing.amount,
+          promo_code: pricing.code,
           request_id_a: `req_${orderId}_A`,
           request_id_b: `req_${orderId}_B`,
         });
         const order = orders.byId(orderId);
-        if (created) hooks.onOrderCreated?.(order);
-        return { order, created };
+        hooks.onOrderCreated?.(order);
+        return { order, created: true };
       });
     },
 

@@ -11,6 +11,7 @@ import { webhookRouter } from './routes/webhook.js';
 import { deliveryService } from './services/delivery.js';
 import { ordersService } from './services/orders.js';
 import { paymentsService } from './services/payments.js';
+import { promoService } from './services/promo.js';
 import { startDeliveryWorker } from './workers/deliveryWorker.js';
 
 /**
@@ -20,13 +21,15 @@ import { startDeliveryWorker } from './workers/deliveryWorker.js';
  */
 export function createApp({ db, config, log = console.log, worker: workerOpts = true }) {
   const delivery = deliveryService({ db, config, log });
-  const payments = paymentsService({ db, config, enqueueDelivery: delivery.enqueue, log });
+  const promo = promoService({ db, log });
+  const payments = paymentsService({ db, config, enqueueDelivery: delivery.enqueue, promo, log });
   const orders = ordersService({
     db,
+    promo,
     // Вебхук мог прийти раньше заказа: применяем отложенные события в транзакции создания.
     hooks: { onOrderCreated: (order) => payments.applyPending(order) },
   });
-  const services = { delivery, payments, orders };
+  const services = { delivery, payments, orders, promo };
 
   const worker = workerOpts
     ? startDeliveryWorker({ delivery, log, ...(typeof workerOpts === 'object' ? workerOpts : {}) })
@@ -40,7 +43,7 @@ export function createApp({ db, config, log = console.log, worker: workerOpts = 
   app.use(productsRouter);
   app.use(ordersRouter(services));
   app.use(webhookRouter({ payments, onAccepted: () => worker?.kick() }));
-  app.use(adminRouter({ db, config, orders, delivery, worker }));
+  app.use(adminRouter({ db, config, orders, delivery, promo, worker }));
 
   // Витрина, страница заказа и админка отдаются как статика из frontend/.
   app.use(express.static(config.frontendDir, { extensions: ['html'] }));

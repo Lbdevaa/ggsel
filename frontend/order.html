@@ -14,9 +14,16 @@
     <section class="panel">
       <dl class="order-summary">
         <dt>Товар</dt><dd id="product"></dd>
-        <dt>Сумма</dt><dd id="amount"></dd>
+        <dt>Сумма</dt><dd><span id="amount"></span> <span id="discount" class="muted"></span></dd>
         <dt>Статус</dt><dd><span id="status" class="status"></span></dd>
       </dl>
+
+      <form id="promo-form" class="promo-form" hidden>
+        <label for="promo-code">Промокод</label>
+        <input id="promo-code" type="text" placeholder="WELCOME10" autocomplete="off" spellcheck="false">
+        <button type="submit" class="secondary">Применить</button>
+        <span id="promo-message" class="muted"></span>
+      </form>
 
       <div id="pay-actions" hidden>
         <p>Оплата эмулируется: кнопка отправляет вебхук платёжной системы на API.</p>

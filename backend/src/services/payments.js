@@ -25,9 +25,10 @@ export class WebhookError extends Error {
 }
 
 /**
- * @param {{ db: import('node:sqlite').DatabaseSync, config: object, enqueueDelivery: (orderId: string) => boolean, log?: Function }} deps
+ * @param {{ db: import('node:sqlite').DatabaseSync, config: object, enqueueDelivery: (orderId: string) => boolean,
+ *           promo?: { releaseForOrder: (order: object) => boolean }, log?: Function }} deps
  */
-export function paymentsService({ db, config, enqueueDelivery, log = console.log }) {
+export function paymentsService({ db, config, enqueueDelivery, promo, log = console.log }) {
   const orders = ordersRepo(db);
   const events = webhookEventsRepo(db);
 
@@ -49,6 +50,8 @@ export function paymentsService({ db, config, enqueueDelivery, log = console.log
     }
     const moved = orders.transition(order.id, STATUS.PAYMENT_FAILED, { reason: `webhook ${event.event_id}` });
     if (!moved) return 'ignored';
+    // Переход прошёл ровно один раз, значит и возврат промокода случится ровно один раз.
+    promo?.releaseForOrder(order);
     events.markApplied(event.event_id);
     return 'applied';
   }

@@ -45,6 +45,19 @@ export function ordersRepo(db) {
     listByStatuses: (statuses) => statuses.flatMap((s) => stmt.listByStatus.all(s)),
     events: (id) => stmt.events.all(id),
 
+    /**
+     * Применение промокода к неоплаченному заказу. CAS по статусу и пустому promo_code:
+     * второй параллельный вызов не пройдёт.
+     */
+    applyPromo(id, { code, discount, amount }) {
+      return db
+        .prepare(`
+          UPDATE orders SET promo_code = ?, discount = ?, amount = ?, updated_at = ?
+           WHERE id = ? AND status = 'created' AND promo_code IS NULL
+        `)
+        .run(code, discount, amount, nowIso(), id).changes === 1;
+    },
+
     /** Обновление полей без смены статуса (например, привязка к поставщику). */
     update(id, patch) {
       const sets = ['updated_at = ?'];

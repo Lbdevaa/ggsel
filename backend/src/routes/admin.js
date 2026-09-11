@@ -7,7 +7,7 @@ import { ordersRepo } from '../repositories/orders.js';
  * Админка: список заказов, «оплачен, но не выдан», повторная выдача, управление поставщиками.
  * Авторизация упрощённая: заголовок x-admin-token или Authorization: Bearer <token>.
  */
-export function adminRouter({ db, config, orders, delivery, worker }) {
+export function adminRouter({ db, config, orders, delivery, promo, worker }) {
   const router = Router();
   const repo = ordersRepo(db);
 
@@ -35,6 +35,18 @@ export function adminRouter({ db, config, orders, delivery, worker }) {
     if (outcome.result === 'not_recoverable') return res.status(409).json({ error: 'not_recoverable', status: outcome.status });
     worker?.kick();
     res.json(outcome);
+  });
+
+  router.get('/api/admin/promocodes', (_req, res) => res.json({ promocodes: promo.list() }));
+
+  router.post('/api/admin/promocodes', (req, res) => {
+    try {
+      const { promo: created, created: isNew } = promo.create(req.body ?? {});
+      res.status(isNew ? 201 : 200).json({ promo: created, created: isNew });
+    } catch (err) {
+      if (err?.status) return res.status(err.status).json({ error: err.code });
+      throw err;
+    }
   });
 
   const supplierUrl = (name) => ({ a: config.suppliers.a, b: config.suppliers.b })[String(name).toLowerCase()];

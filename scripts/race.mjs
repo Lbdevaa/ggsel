@@ -32,7 +32,21 @@ const newOrderId = () => `ord_${randomUUID()}`;
 const newEventId = () => `evt_${randomUUID()}`;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-const createOrder = (orderId, sku = 'KEY-GTA5') => post(`${API}/api/orders`, { order_id: orderId, sku });
+const createOrder = (orderId, sku = 'KEY-GTA5', promo_code) => post(`${API}/api/orders`, { order_id: orderId, sku, promo_code });
+const adminPost = async (path, body) => {
+  const res = await fetch(`${API}/api/admin${path}`, { method: 'POST', headers: ADMIN_HEADERS, body: JSON.stringify(body ?? {}) });
+  return { status: res.status, body: await res.json().catch(() => ({})) };
+};
+const promoUsed = async (code) => {
+  const res = await fetch(`${API}/api/admin/promocodes`, { headers: ADMIN_HEADERS });
+  return (await res.json()).promocodes.find((p) => p.code === code)?.used;
+};
+// Свежий промокод на каждый прогон: лимит глобальный, иначе повторный запуск упёрся бы в исчерпанный код.
+const freshPromo = async (prefix, maxUses, type = 'percent', value = 25) => {
+  const code = `${prefix}-${randomUUID().slice(0, 8).toUpperCase()}`;
+  await adminPost('/promocodes', { code, type, value, max_uses: maxUses });
+  return code;
+};
 const webhook = (orderId, status, eventId = newEventId(), amount) =>
   post(`${API}/webhook/payment`, { event_id: eventId, order_id: orderId, status, amount, currency: 'RUB' });
 const issuedAt = async (url) => (await get(`${url}/stats`)).issued;
@@ -309,6 +323,48 @@ async function rs_chaosStress() {
   }
 }
 
+async function r8_promoLimitUnderParallelOrders() {
+  const code = await freshPromo('LIMIT3', 3);
+  const responses = await Promise.all(Array.from({ length: 50 }, () => createOrder(newOrderId(), 'KEY-CS2-PRIME', code)));
+  const ok = responses.filter((r) => r.status === 201);
+  const exhausted = responses.filter((r) => r.status === 409 && r.body.error === 'promo_exhausted');
+  return check('R8 50 параллельных заказов с промокодом на 3 использования', [
+    expect('applied (201)', ok.length, 3),
+    expect('rejected (409 promo_exhausted)', exhausted.length, 47),
+    expect('server-side discount 25% of 1290', ok.every((r) => r.body.order.discount === 322 && r.body.order.amount === 968), true),
+    expect('promo used counter', await promoUsed(code), 3),
+  ], { delivered: 0 });
+}
+
+async function r9_promoOnceOnly() {
+  const code = await freshPromo('ONCE', 1, 'percent', 50);
+  const responses = await Promise.all(Array.from({ length: 50 }, () => createOrder(newOrderId(), 'SUB-YT-3M', code)));
+  return check('R9 промокод на 1 использование под 50 параллельными заказами', [
+    expect('applied (201)', responses.filter((r) => r.status === 201).length, 1),
+    expect('rejected (409)', responses.filter((r) => r.status === 409).length, 49),
+    expect('promo used counter', await promoUsed(code), 1),
+  ], { delivered: 0 });
+}
+
+async function r9b_promoReleasedOnFailedPayment() {
+  // Неуспешная оплата возвращает использование ровно один раз; повторный failed ничего не возвращает.
+  const code = await freshPromo('RELEASE', 1, 'amount', 500);
+  const first = newOrderId();
+  const created = await createOrder(first, 'KEY-GTA5', code);
+  const blocked = await createOrder(newOrderId(), 'KEY-GTA5', code);
+  await webhook(first, 'failed');
+  const usedAfterFail = await promoUsed(code);
+  await webhook(first, 'failed');
+  const second = await createOrder(newOrderId(), 'KEY-GTA5', code);
+  return check('R9b возврат промокода при неуспешной оплате', [
+    expect('first order amount (1990 - 500)', created.body.order?.amount, 1490),
+    expect('second order blocked', blocked.status, 409),
+    expect('used after failed payment', usedAfterFail, 0),
+    expect('used after repeated failed', await promoUsed(code), 1),
+    expect('next order takes the code', second.status, 201),
+  ], { delivered: 0 });
+}
+
 // ---------- runner ----------
 
 const SCENARIOS = [
@@ -322,6 +378,9 @@ const SCENARIOS = [
   r7_supplierTimeoutSameCode,
   r7b_fallbackToB,
   rs_chaosStress,
+  r8_promoLimitUnderParallelOrders,
+  r9_promoOnceOnly,
+  r9b_promoReleasedOnFailedPayment,
 ];
 
 async function main() {
