@@ -58,6 +58,9 @@ function seedPromocodes(db) {
  * @returns {T}
  */
 export function inTransaction(db, fn) {
+  // Реентерабельность: вложенный вызов выполняется внутри уже открытой транзакции.
+  if (txDepth.get(db)) return fn();
+  txDepth.set(db, 1);
   db.exec('BEGIN IMMEDIATE');
   try {
     const result = fn();
@@ -66,7 +69,12 @@ export function inTransaction(db, fn) {
   } catch (err) {
     db.exec('ROLLBACK');
     throw err;
+  } finally {
+    txDepth.set(db, 0);
   }
 }
+
+/** @type {WeakMap<DatabaseSync, number>} */
+const txDepth = new WeakMap();
 
 export const nowIso = () => new Date().toISOString();

@@ -9,18 +9,24 @@
 <body>
   <main class="container">
     <h1>GGSel MVP</h1>
-    <p>Каркас витрины. Верстка по макету появится на этапе 1.</p>
-    <ul id="products"></ul>
+    <p>Каркас витрины. Верстка по макету появится следующим шагом. Кнопка «Купить» уже создаёт заказ.</p>
+    <ul id="products" class="product-list"></ul>
   </main>
   <script type="module">
     import { api } from './js/api.js';
+    import { buy } from './js/buy.js';
+
     const list = document.getElementById('products');
     const { products } = await api.get('/api/products');
     for (const p of products) {
       const li = document.createElement('li');
-      li.textContent = `${p.name} — ${p.price} ₽ (${p.sku})`;
+      li.innerHTML = `<span>${p.name} — ${p.price} ₽</span> <button type="button" data-sku="${p.sku}">Купить</button>`;
       list.append(li);
     }
+    list.addEventListener('click', (e) => {
+      const button = e.target.closest('button[data-sku]');
+      if (button) buy(button, button.dataset.sku);
+    });
   </script>
 </body>
 </html>

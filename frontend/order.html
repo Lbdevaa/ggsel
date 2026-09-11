@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Заказ — GGSel</title>
+  <link rel="stylesheet" href="css/base.css">
+</head>
+<body>
+  <main class="container order-page">
+    <p><a href="index.html">← На витрину</a></p>
+    <h1>Заказ <span id="order-id" class="mono"></span></h1>
+
+    <section class="panel">
+      <dl class="order-summary">
+        <dt>Товар</dt><dd id="product"></dd>
+        <dt>Сумма</dt><dd id="amount"></dd>
+        <dt>Статус</dt><dd><span id="status" class="status"></span></dd>
+      </dl>
+
+      <div id="pay-actions" hidden>
+        <p>Оплата эмулируется: кнопка отправляет вебхук платёжной системы на API.</p>
+        <button type="button" id="pay-success">Оплатить (успех)</button>
+        <button type="button" id="pay-failed" class="secondary">Оплатить (неуспех)</button>
+      </div>
+
+      <div id="key-block" hidden>
+        <p>Ваш ключ:</p>
+        <code id="key" class="key"></code>
+      </div>
+
+      <p id="note" class="muted"></p>
+    </section>
+
+    <details>
+      <summary>История статусов</summary>
+      <ol id="history"></ol>
+    </details>
+  </main>
+  <script type="module" src="js/order.js"></script>
+</body>
+</html>

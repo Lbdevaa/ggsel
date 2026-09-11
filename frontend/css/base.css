@@ -23,3 +23,97 @@ body {
   margin: 0 auto;
   padding: 24px 16px;
 }
+
+/* Временные стили каркаса (заменяются на этапе верстки) */
+
+.product-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.product-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--panel);
+  border-radius: 12px;
+}
+
+button {
+  font: inherit;
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 18px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+button.secondary {
+  background: #e5e7eb;
+  color: var(--text);
+}
+
+.panel {
+  margin-bottom: 16px;
+  padding: 20px 24px;
+  background: var(--panel);
+  border-radius: var(--radius);
+}
+
+.order-summary {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 8px 16px;
+  margin: 0 0 16px;
+}
+
+.order-summary dt {
+  color: var(--muted);
+}
+
+.order-summary dd {
+  margin: 0;
+}
+
+.mono {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.9em;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.key {
+  display: inline-block;
+  padding: 10px 16px;
+  font-size: 1.4rem;
+  letter-spacing: 0.08em;
+  background: #ecfdf5;
+  color: #065f46;
+  border-radius: 10px;
+}
+
+.status[data-status="delivered"] {
+  color: #059669;
+  font-weight: 600;
+}
+
+.status[data-status="payment_failed"] {
+  color: #dc2626;
+}
+
+.status[data-status="out_of_stock"],
+.status[data-status="delivery_failed"] {
+  color: #d97706;
+  font-weight: 600;
+}

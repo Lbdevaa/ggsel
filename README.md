@@ -41,6 +41,20 @@ scripts/    dev.mjs (три процесса), reset-db.mjs, race.mjs (сцен�
 docs/       бриф, решения, сценарии гонок
 ```
 
+## API
+
+| Метод | Путь | Назначение |
+|---|---|---|
+| GET | `/api/products` | каталог |
+| POST | `/api/orders` | `{order_id, sku}` → заказ. `order_id` вида `ord_<uuid>` генерирует клиент, повтор с тем же id возвращает тот же заказ (`200` вместо `201`) |
+| GET | `/api/orders/:id` | заказ и история переходов; `key_code` виден только в статусе `delivered` |
+| POST | `/api/orders/:id/pay?result=success\|failed` | эмулятор платёжки: формирует событие и шлёт его на `/webhook/payment` по HTTP |
+| POST | `/webhook/payment` | вебхук по контракту: `{event_id, order_id, status, amount, currency, created_at}`. Всегда `200`, в ответе `result`: `applied`, `duplicate`, `ignored`, `pending_order`, `amount_mismatch` |
+
+Поставщики (`4001` A, `4002` B): `POST /issue`, `POST /restock {count | keys}`, `POST /chaos {fail_rate, timeout_rate, hang_ms}`, `GET /stats`.
+
+Статусы заказа: `created → paid → delivering → delivered`, ветки `payment_failed`, `out_of_stock`, `delivery_failed`. Переходы описаны в [backend/src/domain/statuses.js](backend/src/domain/statuses.js).
+
 ## Как воспроизвести проверку гонок
 
 _Заполняется на этапе 2._

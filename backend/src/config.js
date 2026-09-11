@@ -14,8 +14,12 @@ const num = (value, fallback) => {
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
+const port = num(process.env.PORT, 3300);
+
 export const config = Object.freeze({
-  port: num(process.env.PORT, 3300),
+  port,
+  // Адрес, по которому эмулятор платёжки шлёт вебхук самому API.
+  publicUrl: process.env.PUBLIC_URL ?? `http://localhost:${port}`,
   dbPath: path.resolve(repoRoot, process.env.DB_PATH ?? 'backend/data/app.sqlite'),
   frontendDir: path.resolve(repoRoot, 'frontend'),
   dataDir: path.resolve(backendRoot, 'data'),
