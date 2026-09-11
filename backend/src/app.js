@@ -13,10 +13,11 @@ import { paymentsService } from './services/payments.js';
 import { startDeliveryWorker } from './workers/deliveryWorker.js';
 
 /**
- * @param {{ db: import('node:sqlite').DatabaseSync, config: object, log?: Function, worker?: boolean }} deps
+ * @param {{ db: import('node:sqlite').DatabaseSync, config: object, log?: Function,
+ *           worker?: boolean | { intervalMs?: number, concurrency?: number } }} deps
  * @returns {{ app: import('express').Express, services: object, worker: { kick: Function, stop: Function } | null }}
  */
-export function createApp({ db, config, log = console.log, worker: withWorker = true }) {
+export function createApp({ db, config, log = console.log, worker: workerOpts = true }) {
   const delivery = deliveryService({ db, config, log });
   const payments = paymentsService({ db, config, enqueueDelivery: delivery.enqueue, log });
   const orders = ordersService({
@@ -26,7 +27,9 @@ export function createApp({ db, config, log = console.log, worker: withWorker = 
   });
   const services = { delivery, payments, orders };
 
-  const worker = withWorker ? startDeliveryWorker({ delivery, log }) : null;
+  const worker = workerOpts
+    ? startDeliveryWorker({ delivery, log, ...(typeof workerOpts === 'object' ? workerOpts : {}) })
+    : null;
 
   const app = express();
   app.locals.services = services;

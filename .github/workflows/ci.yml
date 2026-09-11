@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  tests:
+    name: node --test (флоу, гонки, сбои поставщика)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+  race:
+    name: race.mjs против docker compose
+    runs-on: ubuntu-latest
+    needs: tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: docker compose up -d --build --wait
+      - run: RACE_REPEAT=3 node scripts/race.mjs
+      - name: логи при падении
+        if: failure()
+        run: docker compose logs --no-color --tail=200
+      - if: always()
+        run: docker compose down -v
