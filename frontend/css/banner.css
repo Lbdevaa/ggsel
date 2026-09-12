@@ -26,20 +26,35 @@
   height: 100%;
   padding: 32px 40px;
   color: #fff;
-  background: #000;
+  background-color: #000;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
-.banner__slide--1 { background: radial-gradient(120% 140% at 0% 100%, #1c1c1c 0%, #000 60%); }
+.banner__slide--1 {
+  background-image: linear-gradient(90deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.35) 55%, rgba(0, 0, 0, 0.1) 100%), url("../assets/banner-1.jpg");
+}
 
-.banner__slide--2 { background: radial-gradient(120% 140% at 100% 0%, #202020 0%, #000 60%); }
+.banner__slide--2 {
+  background-image: linear-gradient(90deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.35) 55%, rgba(0, 0, 0, 0.1) 100%), url("../assets/banner-2.jpg");
+}
 
-.banner__slide--3 { background: linear-gradient(135deg, #111 0%, #000 70%); }
+.banner__slide--3 {
+  background-image: linear-gradient(90deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.35) 55%, rgba(0, 0, 0, 0.1) 100%), url("../assets/banner-3.jpg");
+}
 
-.banner__slide--4 { background: radial-gradient(90% 120% at 50% 100%, #1a1a1a 0%, #000 65%); }
+.banner__slide--4 {
+  background-image: linear-gradient(90deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.35) 55%, rgba(0, 0, 0, 0.1) 100%), url("../assets/banner-4.jpg");
+}
 
-.banner__slide--5 { background: linear-gradient(225deg, #161616 0%, #000 70%); }
+.banner__slide--5 {
+  background-image: linear-gradient(90deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.35) 55%, rgba(0, 0, 0, 0.1) 100%), url("../assets/banner-5.jpg");
+}
 
-.banner__slide--6 { background: radial-gradient(120% 140% at 0% 0%, #1e1e1e 0%, #000 60%); }
+.banner__slide--6 {
+  background-image: linear-gradient(90deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.35) 55%, rgba(0, 0, 0, 0.1) 100%), url("../assets/banner-6.jpg");
+}
 
 .banner__caption {
   max-width: 520px;
