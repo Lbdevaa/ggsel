@@ -7,6 +7,8 @@
  * RACE_REPEAT (сколько раз прогнать весь набор, по умолчанию 1).
  *
  * Каждый сценарий создаёт свои заказы, поэтому набор можно гонять многократно без сброса БД.
+ * Перед каждым прогоном скрипт пополняет пулы поставщиков до нужного запаса: один круг тратит
+ * около 40 ключей, а стартовые пулы это 50 у A и 5 у B.
  * Сценарии R6–R7 включают режимы сбоев у заглушек поставщиков через /chaos и снимают их после себя.
  * Инвариант в конце: у поставщиков A+B списано ровно столько ключей, сколько заказов дошло до delivered.
  */
@@ -50,6 +52,16 @@ const freshPromo = async (prefix, maxUses, type = 'percent', value = 25) => {
 const webhook = (orderId, status, eventId = newEventId(), amount) =>
   post(`${API}/webhook/payment`, { event_id: eventId, order_id: orderId, status, amount, currency: 'RUB' });
 const issuedAt = async (url) => (await get(`${url}/stats`)).issued;
+const availableAt = async (url) => (await get(`${url}/stats`)).available;
+
+// Запас ключей на один круг: A основной поставщик, B нужен для fallback и хаос-стресса.
+const STOCK_PER_ROUND = { [SUPPLIER_A]: 60, [SUPPLIER_B]: 20 };
+async function ensureStock() {
+  for (const [url, need] of Object.entries(STOCK_PER_ROUND)) {
+    const available = await availableAt(url);
+    if (available < need) await post(`${url}/restock`, { count: need - available });
+  }
+}
 const supplierIssued = () => issuedAt(SUPPLIER_A);
 const supplierIssuedTotal = async () => (await issuedAt(SUPPLIER_A)) + (await issuedAt(SUPPLIER_B));
 const chaos = (url, body) => post(`${url}/chaos`, body);
@@ -399,6 +411,7 @@ async function main() {
 
   for (let round = 1; round <= REPEAT; round += 1) {
     if (REPEAT > 1) console.log(`\n=== прогон ${round}/${REPEAT} ===`);
+    await ensureStock();
     for (const scenario of SCENARIOS) {
       const started = Date.now();
       const result = await scenario();
