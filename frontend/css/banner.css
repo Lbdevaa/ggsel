@@ -1,0 +1,122 @@
+.banner {
+  position: relative;
+  height: 263px;
+}
+
+.banner__viewport {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  -webkit-mask: url("../assets/banner-subtract.svg") center / 100% 100% no-repeat;
+  mask: url("../assets/banner-subtract.svg") center / 100% 100% no-repeat;
+  background: #000;
+}
+
+.banner__track {
+  display: flex;
+  height: 100%;
+  transition: transform 500ms ease;
+}
+
+.banner__slide {
+  flex: 0 0 100%;
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+  padding: 32px 40px;
+  color: #fff;
+  background: #000;
+}
+
+.banner__slide--1 { background: radial-gradient(120% 140% at 0% 100%, #1c1c1c 0%, #000 60%); }
+
+.banner__slide--2 { background: radial-gradient(120% 140% at 100% 0%, #202020 0%, #000 60%); }
+
+.banner__slide--3 { background: linear-gradient(135deg, #111 0%, #000 70%); }
+
+.banner__slide--4 { background: radial-gradient(90% 120% at 50% 100%, #1a1a1a 0%, #000 65%); }
+
+.banner__slide--5 { background: linear-gradient(225deg, #161616 0%, #000 70%); }
+
+.banner__slide--6 { background: radial-gradient(120% 140% at 0% 0%, #1e1e1e 0%, #000 60%); }
+
+.banner__caption {
+  max-width: 520px;
+}
+
+.banner__title {
+  margin: 0 0 6px;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.banner__text {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.banner__controls {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 90px;
+  height: 40px;
+  padding: 4px;
+  background: var(--surface-muted);
+  border: 1px solid #e5e9f1;
+  border-radius: 48px;
+}
+
+.banner__arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  transition: background var(--transition);
+}
+
+.banner__arrow:hover {
+  background: #e6e9ef;
+}
+
+.banner__arrow img {
+  width: 22px;
+  height: 22px;
+}
+
+.banner__dots {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.banner__dot {
+  display: block;
+  width: 20px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: 12px;
+  transition: background var(--transition), width var(--transition);
+}
+
+.banner__dot:hover {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.banner__dot.is-active {
+  background: #fff;
+}

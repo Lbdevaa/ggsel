@@ -1,0 +1,124 @@
+.services-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  background: var(--surface);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-panel);
+}
+
+.services {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.service {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 76px;
+  width: 76px;
+  padding: 0;
+  transition: transform var(--transition);
+}
+
+.service__frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border-radius: 14px;
+  transition: background var(--transition), box-shadow var(--transition);
+}
+
+.service__icon {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  overflow: hidden;
+  background: #fff;
+  border: 2px solid var(--service-color, #dfe5ef);
+  border-radius: 16px;
+  box-shadow: var(--shadow-icon);
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+}
+
+.service__icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.service__icon--more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-muted-2);
+  box-shadow: none;
+}
+
+.service__icon--more img {
+  width: 28px;
+  height: 28px;
+}
+
+.service__label {
+  max-width: 100px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+  letter-spacing: -0.16px;
+  color: var(--text-body);
+  white-space: nowrap;
+  transition: color var(--transition);
+}
+
+.service--more .service__label {
+  color: var(--text-muted);
+}
+
+.service:hover .service__icon {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 18px #cbd3df;
+}
+
+.service:hover .service__label {
+  color: var(--text);
+}
+
+.service:focus-visible {
+  outline: none;
+}
+
+.service:focus-visible .service__icon {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.service.is-active .service__frame {
+  background: var(--accent);
+  border-radius: 16px;
+  box-shadow: 0 4px 4px #d1d9e4;
+}
+
+.service.is-active .service__icon {
+  border: 3px solid #fff;
+  box-shadow: none;
+}
+
+.service.is-active .service__label {
+  color: var(--accent);
+}
+
+.services-panel__divider {
+  height: 1px;
+  margin: 0;
+  border: 0;
+  background: var(--divider);
+}

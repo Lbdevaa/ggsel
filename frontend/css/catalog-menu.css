@@ -1,0 +1,128 @@
+.catalog-menu {
+  position: absolute;
+  top: var(--header-height);
+  left: 0;
+  right: 0;
+  z-index: 25;
+  display: flex;
+  min-height: 500px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 24px 40px rgba(20, 40, 80, 0.08);
+}
+
+.catalog-menu[hidden] {
+  display: none;
+}
+
+.catalog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.catalog-backdrop[hidden] {
+  display: none;
+}
+
+.catalog-menu__sidebar {
+  flex: 0 0 320px;
+  padding: 16px 0;
+  border-right: 1px solid var(--border);
+}
+
+.catalog-menu__list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.catalog-menu__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-body);
+  text-align: left;
+  transition: background var(--transition);
+}
+
+.catalog-menu__item:hover,
+.catalog-menu__item.is-active {
+  color: var(--text);
+  background: var(--surface-muted);
+}
+
+.catalog-menu__item img {
+  width: 18px;
+  height: 18px;
+  opacity: 0.5;
+}
+
+.catalog-menu__item.is-active img {
+  opacity: 1;
+}
+
+.catalog-menu__content {
+  flex: 1 1 auto;
+  padding: 40px 32px;
+}
+
+.catalog-menu__grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 40px 32px;
+}
+
+.catalog-menu__group {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.catalog-menu__heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+  color: var(--text);
+}
+
+.catalog-menu__heading img {
+  width: 18px;
+  height: 18px;
+}
+
+.catalog-menu__links {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.catalog-menu__links a {
+  display: block;
+  padding: 2px 0 1px;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 20.25px;
+  color: var(--text-body);
+  transition: color var(--transition);
+}
+
+.catalog-menu__links a:hover {
+  color: var(--text);
+  text-decoration: underline;
+}

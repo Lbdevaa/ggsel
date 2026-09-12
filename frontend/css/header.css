@@ -1,0 +1,130 @@
+.header {
+  position: relative;
+  z-index: 30;
+  height: var(--header-height);
+  background: var(--surface);
+  border-bottom: 1px solid var(--surface-muted-2);
+}
+
+.header__inner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 100%;
+}
+
+.header__logo {
+  flex: 0 0 176px;
+  height: 44px;
+}
+
+.catalog-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border-radius: var(--radius-control);
+  transition: background var(--transition);
+}
+
+.catalog-toggle:hover,
+.catalog-toggle[aria-expanded="true"] {
+  background: #2a2a2a;
+}
+
+.catalog-toggle img {
+  width: 20px;
+  height: 20px;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  max-width: 688px;
+  height: 44px;
+  margin-left: 60px;
+  padding: 2px;
+  background: var(--accent);
+  border-radius: var(--radius-control);
+}
+
+.search__field {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  height: 40px;
+  padding: 0 4px 0 10px;
+  background: var(--surface);
+  border-radius: 8px;
+}
+
+.search__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.36px;
+  color: var(--text);
+  background: transparent;
+}
+
+.search__input::placeholder {
+  color: var(--text-placeholder);
+}
+
+.search__favorite {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: #eff1f5;
+  border-radius: 6px;
+  transition: background var(--transition);
+}
+
+.search__favorite:hover {
+  background: #e3e7ee;
+}
+
+.search__submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 40px;
+}
+
+.search__submit img {
+  width: 20px;
+  height: 20px;
+}
+
+.profile-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-left: auto;
+  background: var(--surface-muted-2);
+  border-radius: var(--radius-control);
+  transition: background var(--transition);
+}
+
+.profile-button:hover {
+  background: #e6e9ef;
+}
+
+.profile-button img {
+  width: 20px;
+  height: 20px;
+}

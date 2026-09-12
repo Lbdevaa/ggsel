@@ -3,19 +3,24 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
   <title>Админка — GGSel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
-  <main class="container admin">
+  <div class="page">
+  <main class="container service-page admin">
     <header class="admin-header">
       <h1>Админка</h1>
       <label class="token">
         Токен
         <input id="token" type="password" placeholder="ADMIN_TOKEN" autocomplete="off">
       </label>
-      <a href="index.html">На витрину</a>
+      <a class="back-link" href="index.html">На витрину</a>
     </header>
 
     <section class="panel">
@@ -28,7 +33,7 @@
         <h2>Заказы</h2>
         <label><input type="radio" name="filter" value="recoverable" checked> Оплачен, но не выдан</label>
         <label><input type="radio" name="filter" value="all"> Все</label>
-        <button type="button" id="refresh" class="secondary">Обновить</button>
+        <button type="button" id="refresh" class="btn btn--secondary btn--small">Обновить</button>
         <span id="message" class="muted"></span>
       </div>
       <div class="table-wrap">
@@ -43,6 +48,7 @@
       </div>
     </section>
   </main>
+  </div>
   <script type="module" src="js/admin.js"></script>
 </body>
 </html>

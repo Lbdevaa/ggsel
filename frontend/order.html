@@ -3,47 +3,53 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
   <title>Заказ — GGSel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/base.css">
 </head>
 <body>
-  <main class="container order-page">
-    <p><a href="index.html">← На витрину</a></p>
-    <h1>Заказ <span id="order-id" class="mono"></span></h1>
+  <div class="page">
+    <main class="container service-page">
+      <a class="back-link" href="index.html">← На витрину</a>
+      <h1>Заказ <span id="order-id" class="mono"></span></h1>
 
-    <section class="panel">
-      <dl class="order-summary">
-        <dt>Товар</dt><dd id="product"></dd>
-        <dt>Сумма</dt><dd><span id="amount"></span> <span id="discount" class="muted"></span></dd>
-        <dt>Статус</dt><dd><span id="status" class="status"></span></dd>
-      </dl>
+      <section class="panel">
+        <dl class="order-summary">
+          <dt>Товар</dt><dd id="product"></dd>
+          <dt>Сумма</dt><dd><span id="amount"></span> <span id="discount" class="muted"></span></dd>
+          <dt>Статус</dt><dd><span id="status" class="status"></span></dd>
+        </dl>
 
-      <form id="promo-form" class="promo-form" hidden>
-        <label for="promo-code">Промокод</label>
-        <input id="promo-code" type="text" placeholder="WELCOME10" autocomplete="off" spellcheck="false">
-        <button type="submit" class="secondary">Применить</button>
-        <span id="promo-message" class="muted"></span>
-      </form>
+        <form id="promo-form" class="promo-form" hidden>
+          <label for="promo-code">Промокод</label>
+          <input id="promo-code" type="text" placeholder="WELCOME10" autocomplete="off" spellcheck="false">
+          <button type="submit" class="btn btn--secondary">Применить</button>
+          <span id="promo-message" class="muted"></span>
+        </form>
 
-      <div id="pay-actions" hidden>
-        <p>Оплата эмулируется: кнопка отправляет вебхук платёжной системы на API.</p>
-        <button type="button" id="pay-success">Оплатить (успех)</button>
-        <button type="button" id="pay-failed" class="secondary">Оплатить (неуспех)</button>
-      </div>
+        <div id="pay-actions" class="pay-actions" hidden>
+          <p>Оплата эмулируется: кнопка отправляет вебхук платёжной системы на API.</p>
+          <button type="button" id="pay-success" class="btn">Оплатить (успех)</button>
+          <button type="button" id="pay-failed" class="btn btn--secondary">Оплатить (неуспех)</button>
+        </div>
 
-      <div id="key-block" hidden>
-        <p>Ваш ключ:</p>
-        <code id="key" class="key"></code>
-      </div>
+        <div id="key-block" hidden>
+          <p>Ваш ключ:</p>
+          <code id="key" class="key"></code>
+        </div>
 
-      <p id="note" class="muted"></p>
-    </section>
+        <p id="note" class="muted"></p>
+      </section>
 
-    <details>
-      <summary>История статусов</summary>
-      <ol id="history"></ol>
-    </details>
-  </main>
+      <details>
+        <summary>История статусов</summary>
+        <ol id="history"></ol>
+      </details>
+    </main>
+  </div>
   <script type="module" src="js/order.js"></script>
 </body>
 </html>

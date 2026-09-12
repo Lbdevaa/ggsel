@@ -3,30 +3,233 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>GGSel</title>
+  <link rel="icon" href="data:,">
+  <title>GGSel — ключи, пополнения, подписки, гифт-карты</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/header.css">
+  <link rel="stylesheet" href="css/catalog-menu.css">
+  <link rel="stylesheet" href="css/banner.css">
+  <link rel="stylesheet" href="css/services.css">
+  <link rel="stylesheet" href="css/steam.css">
+  <link rel="stylesheet" href="css/cards.css">
 </head>
 <body>
-  <main class="container">
-    <h1>GGSel MVP</h1>
-    <p>Каркас витрины. Верстка по макету появится следующим шагом. Кнопка «Купить» уже создаёт заказ.</p>
-    <ul id="products" class="product-list"></ul>
-  </main>
-  <script type="module">
-    import { api } from './js/api.js';
-    import { buy } from './js/buy.js';
+  <div class="page">
 
-    const list = document.getElementById('products');
-    const { products } = await api.get('/api/products');
-    for (const p of products) {
-      const li = document.createElement('li');
-      li.innerHTML = `<span>${p.name} — ${p.price} ₽</span> <button type="button" data-sku="${p.sku}">Купить</button>`;
-      list.append(li);
-    }
-    list.addEventListener('click', (e) => {
-      const button = e.target.closest('button[data-sku]');
-      if (button) buy(button, button.dataset.sku);
-    });
-  </script>
+    <header class="header">
+      <div class="container header__inner">
+        <a class="header__logo" href="index.html" aria-label="GGSel"></a>
+
+        <button type="button" class="catalog-toggle" id="catalog-toggle" aria-expanded="false" aria-controls="catalog-menu">
+          <img src="assets/icon-catalog.svg" alt="">
+          Каталог
+        </button>
+
+        <form class="search" role="search" onsubmit="return false">
+          <div class="search__field">
+            <input class="search__input" type="search" placeholder="Игра, приложение или услуга..." aria-label="Поиск">
+            <button type="button" class="search__favorite" aria-label="Избранное">
+              <img src="assets/icon-favorite.svg" alt="" width="14" height="13">
+            </button>
+          </div>
+          <button type="submit" class="search__submit" aria-label="Найти">
+            <img src="assets/icon-search.svg" alt="">
+          </button>
+        </form>
+
+        <a class="profile-button" href="admin.html" aria-label="Профиль">
+          <img src="assets/icon-user.svg" alt="">
+        </a>
+      </div>
+
+      <!-- Выпадающее меню «Каталог» (интерактив 2) -->
+      <nav class="catalog-menu" id="catalog-menu" hidden aria-label="Каталог">
+        <aside class="catalog-menu__sidebar">
+          <ul class="catalog-menu__list">
+            <li><button type="button" class="catalog-menu__item is-active">Игры и игровые сервисы <img src="assets/icon-chevron.svg" alt=""></button></li>
+            <li><button type="button" class="catalog-menu__item">Игровые ценности <img src="assets/icon-chevron.svg" alt=""></button></li>
+            <li><button type="button" class="catalog-menu__item">Мобильные игры <img src="assets/icon-chevron.svg" alt=""></button></li>
+            <li><button type="button" class="catalog-menu__item">Сервисы и соцсети <img src="assets/icon-chevron.svg" alt=""></button></li>
+            <li><button type="button" class="catalog-menu__item">Программы <img src="assets/icon-chevron.svg" alt=""></button></li>
+          </ul>
+        </aside>
+        <div class="catalog-menu__content">
+          <div class="catalog-menu__grid">
+            <section class="catalog-menu__group">
+              <h3 class="catalog-menu__heading">Steam <img src="assets/icon-chevron.svg" alt=""></h3>
+              <ul class="catalog-menu__links">
+                <li><a href="#">Игры и DLC</a></li>
+                <li><a href="#">Пополнение баланса</a></li>
+                <li><a href="#">Подарочные карты</a></li>
+                <li><a href="#">Коллекционные карточки</a></li>
+                <li><a href="#">Смена региона</a></li>
+              </ul>
+            </section>
+            <section class="catalog-menu__group">
+              <h3 class="catalog-menu__heading">PlayStation <img src="assets/icon-chevron.svg" alt=""></h3>
+              <ul class="catalog-menu__links">
+                <li><a href="#">Игры и DLC</a></li>
+                <li><a href="#">Пополнение баланса</a></li>
+                <li><a href="#">Новые аккаунты</a></li>
+                <li><a href="#">PS Plus</a></li>
+                <li><a href="#">EA Play</a></li>
+              </ul>
+            </section>
+            <section class="catalog-menu__group">
+              <h3 class="catalog-menu__heading">Xbox <img src="assets/icon-chevron.svg" alt=""></h3>
+              <ul class="catalog-menu__links">
+                <li><a href="#">Игры и DLC</a></li>
+                <li><a href="#">Пополнение баланса</a></li>
+                <li><a href="#">Новые аккаунты</a></li>
+                <li><a href="#">Xbox Game Pass</a></li>
+                <li><a href="#">Услуги</a></li>
+              </ul>
+            </section>
+            <section class="catalog-menu__group">
+              <h3 class="catalog-menu__heading">Nintendo <img src="assets/icon-chevron.svg" alt=""></h3>
+              <ul class="catalog-menu__links">
+                <li><a href="#">Игры и DLC</a></li>
+                <li><a href="#">Подарочные карты</a></li>
+                <li><a href="#">Новые аккаунты</a></li>
+                <li><a href="#">NS Online</a></li>
+              </ul>
+            </section>
+            <section class="catalog-menu__group">
+              <h3 class="catalog-menu__heading">Battle.net <img src="assets/icon-chevron.svg" alt=""></h3>
+              <ul class="catalog-menu__links">
+                <li><a href="#">World of Warcraft</a></li>
+                <li><a href="#">Подарочные карты</a></li>
+                <li><a href="#">Прямое пополнение</a></li>
+                <li><a href="#">Новые аккаунты</a></li>
+                <li><a href="#">Смена региона</a></li>
+              </ul>
+            </section>
+            <section class="catalog-menu__group">
+              <h3 class="catalog-menu__heading">Подборки <img src="assets/icon-chevron.svg" alt=""></h3>
+              <ul class="catalog-menu__links">
+                <li><a href="#">Скидки 90%</a></li>
+                <li><a href="#">Популярные издатели</a></li>
+                <li><a href="#">Лучшие серии игр</a></li>
+                <li><a href="#">Steam Deck</a></li>
+                <li><a href="#">Bundle-наборы</a></li>
+              </ul>
+            </section>
+          </div>
+        </div>
+      </nav>
+    </header>
+    <div class="catalog-backdrop" id="catalog-backdrop" hidden></div>
+
+    <main class="container">
+
+      <!-- Баннер-карусель (интерактив 1) -->
+      <section class="banner section" id="banner" aria-roledescription="carousel" aria-label="Акции">
+        <div class="banner__viewport">
+          <div class="banner__track" id="banner-track">
+            <div class="banner__slide banner__slide--1" role="group" aria-label="1 из 6">
+              <div class="banner__caption"><h2 class="banner__title">Пополнение Steam без комиссии</h2><p class="banner__text">Зачисление за минуту, бонус 5% на первое пополнение</p></div>
+            </div>
+            <div class="banner__slide banner__slide--2" role="group" aria-label="2 из 6">
+              <div class="banner__caption"><h2 class="banner__title">Ключи Steam от 99 ₽</h2><p class="banner__text">Скидки до 90% на хиты и новинки</p></div>
+            </div>
+            <div class="banner__slide banner__slide--3" role="group" aria-label="3 из 6">
+              <div class="banner__caption"><h2 class="banner__title">Подписки Discord, Spotify, YouTube</h2><p class="banner__text">Активация автоматически после оплаты</p></div>
+            </div>
+            <div class="banner__slide banner__slide--4" role="group" aria-label="4 из 6">
+              <div class="banner__caption"><h2 class="banner__title">PlayStation и Xbox гифт-карты</h2><p class="banner__text">Любой регион, код приходит мгновенно</p></div>
+            </div>
+            <div class="banner__slide banner__slide--5" role="group" aria-label="5 из 6">
+              <div class="banner__caption"><h2 class="banner__title">Robux, UC и алмазы для мобильных игр</h2><p class="banner__text">Roblox, PUBG Mobile, Mobile Legends, Brawl Stars</p></div>
+            </div>
+            <div class="banner__slide banner__slide--6" role="group" aria-label="6 из 6">
+              <div class="banner__caption"><h2 class="banner__title">Промокод WELCOME10</h2><p class="banner__text">Скидка 10% на первый заказ</p></div>
+            </div>
+          </div>
+        </div>
+        <div class="banner__controls">
+          <button type="button" class="banner__arrow" data-dir="-1" aria-label="Предыдущий слайд"><img src="assets/icon-arrow-prev.svg" alt=""></button>
+          <button type="button" class="banner__arrow" data-dir="1" aria-label="Следующий слайд"><img src="assets/icon-arrow-next.svg" alt=""></button>
+        </div>
+        <ol class="banner__dots" id="banner-dots" aria-label="Слайды"></ol>
+      </section>
+
+      <!-- Сервисы (интерактив 4) и пополнение Steam (интерактив 3) -->
+      <section class="services-panel section" aria-label="Сервисы и пополнение">
+        <ul class="services" id="services">
+          <li><button type="button" class="service" style="--service-color:#1482b3"><span class="service__frame"><span class="service__icon"><img src="assets/service-steam.png" alt=""></span></span><span class="service__label">Steam</span></button></li>
+          <li><button type="button" class="service" style="--service-color:#45baee"><span class="service__frame"><span class="service__icon"><img src="assets/service-telegram.png" alt=""></span></span><span class="service__label">Telegram</span></button></li>
+          <li><button type="button" class="service" style="--service-color:#b8c5ff"><span class="service__frame"><span class="service__icon"><img src="assets/service-roblox.png" alt=""></span></span><span class="service__label">Roblox</span></button></li>
+          <li><button type="button" class="service" style="--service-color:#e86eff"><span class="service__frame"><span class="service__icon"><img src="assets/service-brawl-stars.png" alt=""></span></span><span class="service__label">Brawl Stars</span></button></li>
+          <li><button type="button" class="service is-active" style="--service-color:#000"><span class="service__frame"><span class="service__icon"><img src="assets/service-pubg-mobile.png" alt=""></span></span><span class="service__label">PUBG Mob...</span></button></li>
+          <li><button type="button" class="service" style="--service-color:#4acdff"><span class="service__frame"><span class="service__icon"><img src="assets/service-app-store.png" alt=""></span></span><span class="service__label">App Store</span></button></li>
+          <li><button type="button" class="service" style="--service-color:#38d4ad"><span class="service__frame"><span class="service__icon"><img src="assets/service-chatgpt.png" alt=""></span></span><span class="service__label">ChatGPT</span></button></li>
+          <li><button type="button" class="service" style="--service-color:#117fda"><span class="service__frame"><span class="service__icon"><img src="assets/service-playstation.png" alt=""></span></span><span class="service__label">PlayStation</span></button></li>
+          <li><button type="button" class="service" style="--service-color:#454545"><span class="service__frame"><span class="service__icon" style="background:#000"><img src="assets/service-tiktok.png" alt=""></span></span><span class="service__label">TikTok</span></button></li>
+          <li><button type="button" class="service" style="--service-color:rgba(255,255,255,.45)"><span class="service__frame"><span class="service__icon"><img src="assets/service-mobile-legends.png" alt=""></span></span><span class="service__label">Mobile Leg..</span></button></li>
+          <li><button type="button" class="service service--more"><span class="service__frame"><span class="service__icon service__icon--more"><img src="assets/icon-more.svg" alt=""></span></span><span class="service__label">еще 841</span></button></li>
+        </ul>
+
+        <hr class="services-panel__divider">
+
+        <div class="topup">
+          <div class="topup__app">
+            <span class="service__frame"><span class="service__icon" style="--service-color:#1482b3"><img src="assets/service-steam.png" alt=""></span></span>
+            <div class="topup__app-info">
+              <div class="topup__app-title">Пополнение Steam <span class="badge-bonus">5%</span></div>
+              <button type="button" class="topup__promo">Ввести промокод <img src="assets/icon-chevron.svg" alt=""></button>
+            </div>
+          </div>
+
+          <label class="topup__field topup__field--login">
+            <span class="topup__field-main">
+              <img class="topup__field-icon" src="assets/icon-user.svg" alt="">
+              <input class="topup__login-input" type="text" placeholder="Логин Steam" aria-label="Логин Steam">
+            </span>
+            <span class="topup__hint" title="Логин аккаунта Steam, не email">i</span>
+          </label>
+
+          <div class="topup__field topup__field--amount">
+            <div class="topup__field-main">
+              <img class="topup__field-icon" src="assets/icon-ruble.svg" alt="">
+              <div>
+                <div class="topup__amount-label">Сумма</div>
+                <div class="topup__amount-value">500₽</div>
+              </div>
+            </div>
+            <div class="currency-switch" id="currency-switch" role="group" aria-label="Валюта">
+              <button type="button" class="currency-switch__option" data-currency="USD" aria-pressed="true">$</button>
+              <button type="button" class="currency-switch__option" data-currency="KZT" aria-pressed="false">₸</button>
+              <button type="button" class="currency-switch__option" data-currency="RUB" aria-pressed="false">₽</button>
+            </div>
+          </div>
+
+          <button type="button" class="btn topup__pay">Оплатить 500$</button>
+        </div>
+      </section>
+
+      <!-- Один ряд карточек (интерактив 5), кнопка «Купить» создаёт заказ -->
+      <section class="products section" aria-labelledby="popular-title">
+        <div class="products__header">
+          <h2 class="products__title" id="popular-title">Популярные товары</h2>
+          <ul class="chips" id="chips">
+            <li><button type="button" class="chip" aria-pressed="true"><img src="assets/chip-donate.svg" alt="">Донат</button></li>
+            <li><button type="button" class="chip" aria-pressed="false"><img src="assets/chip-subscribes.svg" alt="">Подписки</button></li>
+            <li><button type="button" class="chip" aria-pressed="false"><img src="assets/chip-items.svg" alt="">Предметы</button></li>
+            <li><button type="button" class="chip" aria-pressed="false"><img src="assets/chip-accounts.svg" alt="">Аккаунты</button></li>
+            <li><button type="button" class="chip" aria-pressed="false"><img src="assets/chip-keys.svg" alt="">Ключи</button></li>
+            <li><button type="button" class="chip" aria-pressed="false"><img src="assets/chip-game-currency.svg" alt="">Игровая валюта</button></li>
+            <li><button type="button" class="chip" aria-pressed="false"><img src="assets/chip-other.svg" alt="">Другое</button></li>
+          </ul>
+        </div>
+        <ul class="products__grid" id="products" aria-live="polite"></ul>
+      </section>
+
+    </main>
+  </div>
+
+  <script type="module" src="js/storefront.js"></script>
 </body>
 </html>

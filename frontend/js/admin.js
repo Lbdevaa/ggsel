@@ -62,7 +62,7 @@ function supplierCard(name, s) {
         <span>Свободно <b>${s.available}</b></span>
       </div>
       <div class="supplier-actions">
-        <button type="button" class="small" data-action="restock">Пополнить +10</button>
+        <button type="button" class="btn btn--small" data-action="restock">Пополнить +10</button>
         <label><input type="checkbox" data-chaos="out_of_stock" ${s.out_of_stock ? 'checked' : ''}> нет остатка</label>
         <label>5xx <input type="number" min="0" max="1" step="0.1" value="${s.fail_rate}" data-chaos="fail_rate"></label>
         <label>таймаут <input type="number" min="0" max="1" step="0.1" value="${s.timeout_rate}" data-chaos="timeout_rate"></label>
@@ -105,7 +105,7 @@ async function renderOrders() {
         <td>${o.attempts}</td>
         <td class="error">${o.last_error ?? ''}</td>
         <td class="mono">${o.key_code ?? ''}</td>
-        <td>${recoverable.has(o.status) ? `<button type="button" class="small" data-reissue="${o.id}">Повторить выдачу</button>` : ''}</td>
+        <td>${recoverable.has(o.status) ? `<button type="button" class="btn btn--small" data-reissue="${o.id}">Повторить выдачу</button>` : ''}</td>
       </tr>`).join('')
     : '<tr><td colspan="9" class="muted">Пусто</td></tr>';
 }

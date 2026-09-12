@@ -26,6 +26,7 @@ const POLL_MS = 1000;
 
 const orderId = new URLSearchParams(location.search).get('id');
 const $ = (id) => document.getElementById(id);
+let timer = null;
 
 if (!orderId) {
   document.querySelector('main').innerHTML = '<p>Не указан id заказа.</p>';
@@ -36,8 +37,6 @@ if (!orderId) {
   $('promo-form').addEventListener('submit', applyPromo);
   refresh();
 }
-
-let timer = null;
 
 async function refresh() {
   clearTimeout(timer);
